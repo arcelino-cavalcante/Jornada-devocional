@@ -171,7 +171,7 @@ function toggleTheme() {
 }
 
 function setupPWA() {
-  const handshakeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#ffffff"/><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="none" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.83 2.83a2.82 2.82 0 0 1 0 3.79l-1.9 2.07c-.78.78-.75 2.09.07 3 .82.82 2.26.85 3.08 0l2.96-2.96" fill="none" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const handshakeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#ffffff"/><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" fill="none" stroke="#f43f5e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const iconSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(handshakeIconSVG)}`;
   const manifest = {
     name: 'Jornada Devocional',
@@ -830,6 +830,37 @@ function getAuthorInfo() {
     uid: currentUser?.uid,
     name: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Usuário'
   };
+}
+
+function handleAddJournal(form) {
+  const newEntry = {
+    id: doc(collection(db, 'dummy')).id,
+    title: form.querySelector('#journal-title')?.value?.trim() || 'Sem título',
+    text: form.querySelector('#journal-text')?.value?.trim() || '',
+    shared: form.querySelector('#journal-shared')?.checked ?? true,
+    createdAt: new Date().toISOString(),
+    author: getAuthorInfo()
+  };
+  if (!newEntry.text) {
+    showToast('Escreva algo antes de salvar.', 'error');
+    return;
+  }
+  updateDoc(doc(db, 'devotionalSpaces', coupleId), { journalEntries: arrayUnion(newEntry) })
+    .then(() => {
+      form.reset();
+      const sharedCheckbox = form.querySelector('#journal-shared');
+      if (sharedCheckbox) sharedCheckbox.checked = true;
+      showToast('Entrada adicionada!');
+    })
+    .catch(() => showToast('Erro ao salvar entrada.', 'error'));
+}
+
+function handleDeleteJournal(id) {
+  const entryToDelete = (devotionalSpace?.journalEntries || []).find((entry) => entry.id === id);
+  if (!entryToDelete) return;
+  updateDoc(doc(db, 'devotionalSpaces', coupleId), { journalEntries: arrayRemove(entryToDelete) })
+    .then(() => showToast('Entrada removida.'))
+    .catch(() => showToast('Erro ao excluir entrada.', 'error'));
 }
 
 function handleToggleChapter(button) {
