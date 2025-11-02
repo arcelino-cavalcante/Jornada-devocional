@@ -117,6 +117,9 @@ let currentJournalFilter = 'shared';
 let draggedItemId = null;
 let draggedItemType = null;
 let activePrayerDropdown = null;
+const openBibleBooks = new Set();
+let recoveringSpace = false;
+let recoveryAttempted = false;
 
 const loadingScreen = $('#loading-screen');
 const loginScreen = $('#login-screen');
@@ -168,8 +171,8 @@ function toggleTheme() {
 }
 
 function setupPWA() {
-  const heartIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.83 2.83a2.82 2.82 0 0 1 0 3.79l-1.9 2.07c-.78.78-.75 2.09.07 3 .82.82 2.26.85 3.08 0l2.96-2.96"/></svg>`;
-  const iconSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(heartIconSVG)}`;
+  const handshakeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#ffffff"/><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="none" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.83 2.83a2.82 2.82 0 0 1 0 3.79l-1.9 2.07c-.78.78-.75 2.09.07 3 .82.82 2.26.85 3.08 0l2.96-2.96" fill="none" stroke="#f43f5e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const iconSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(handshakeIconSVG)}`;
   const manifest = {
     name: 'Jornada Devocional',
     short_name: 'Jornada',
@@ -235,7 +238,7 @@ function showTab(tabName) {
 function renderHeader() {
   const headerAvatar = $('#header-avatar');
   const headerCoupleId = $('#header-couple-id');
-  if (headerAvatar) headerAvatar.src = currentUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.displayName || 'Jornada')}&background=fecdd3&color=be123c`;
+  if (headerAvatar) headerAvatar.src = currentUser?.photoURL || 'https://ui-avatars.com/api/?name=JD&background=fecdd3&color=be123c&bold=true';
   if (headerCoupleId) headerCoupleId.textContent = coupleId ? `ID: ${coupleId}` : 'ID: ...';
 }
 
@@ -304,6 +307,7 @@ function getBibleViewHTML() {
   let chaptersRead = 0;
   const renderBook = (book) => {
     let bookChaptersRead = 0;
+    const isOpen = openBibleBooks.has(book.name);
     const chapterButtons = Array.from({ length: book.chapters }, (_, idx) => {
       const chapter = idx + 1;
       const readTimestamp = progress[book.name]?.[chapter];
@@ -312,13 +316,15 @@ function getBibleViewHTML() {
       return `<button data-action="toggle-chapter" data-book="${book.name}" data-chapter="${chapter}" class="chapter-button w-9 h-9 rounded-full flex items-center justify-center font-medium transition-colors ${isRead ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}">${chapter}</button>`;
     }).join('');
     chaptersRead += bookChaptersRead;
-    return `<div class="accordion-item bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden">
+    const itemClasses = `accordion-item bg-white dark:bg-slate-800 rounded-lg shadow-sm overflow-hidden${isOpen ? ' accordion-open' : ''}`;
+    const contentInlineStyle = isOpen ? 'max-height: 9999px;' : 'max-height: 0;';
+    return `<div class="${itemClasses}" data-book="${book.name}">
       <button class="accordion-toggle w-full flex items-center justify-between p-3 text-left group hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
         <span class="font-semibold text-slate-700 dark:text-slate-300 flex-grow break-words mr-2">${book.name}</span>
         <span class="text-sm text-slate-500 dark:text-slate-400 flex-shrink-0 whitespace-nowrap mr-1">(${bookChaptersRead}/${book.chapters})</span>
         <i data-lucide="chevron-down" class="w-5 h-5 text-slate-500 dark:text-slate-400 accordion-icon transition-transform flex-shrink-0"></i>
       </button>
-      <div class="accordion-content">
+      <div class="accordion-content" style="${contentInlineStyle}">
         <div class="p-3 border-t border-slate-100 dark:border-slate-700">
           <div class="flex flex-wrap gap-2">${chapterButtons}</div>
         </div>
@@ -327,8 +333,10 @@ function getBibleViewHTML() {
   };
   const otBooksHTML = BIBLE_DATA.ot.map(renderBook).join('');
   const ntBooksHTML = BIBLE_DATA.nt.map(renderBook).join('');
-  const percent = ((chaptersRead / TOTAL_CHAPTERS) * 100).toFixed(0);
-  const progressHTML = `<div class="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-1"><span>Progresso Total</span><span class="font-semibold">${percent}%</span></div><div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5"><div class="bg-primary h-2.5 rounded-full" style="width: ${percent}%"></div></div>`;
+  const percentRaw = (chaptersRead / TOTAL_CHAPTERS) * 100;
+  const percentText = Number.isFinite(percentRaw) ? percentRaw.toFixed(2) : '0.00';
+  const progressWidth = Number.isFinite(percentRaw) ? Math.min(percentRaw, 100) : 0;
+  const progressHTML = `<div class="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-1"><span>Progresso Total</span><span class="font-semibold">${percentText}%</span></div><div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5"><div class="bg-primary h-2.5 rounded-full" style="width: ${progressWidth}%"></div></div>`;
   const booksHTML = `<h3 class="font-semibold text-lg mb-2 dark:text-slate-200">Antigo Testamento</h3><div class="space-y-2 mb-4">${otBooksHTML}</div><h3 class="font-semibold text-lg mb-2 dark:text-slate-200">Novo Testamento</h3><div class="space-y-2">${ntBooksHTML}</div>`;
   return { progressHTML, booksHTML, chaptersRead };
 }
@@ -537,6 +545,7 @@ function renderApp() {
   renderGoalsTab();
   renderPrayerTab();
   renderIcons();
+  restoreAccordionState();
 }
 
 function renderProgressTab(chaptersRead) {
@@ -631,15 +640,60 @@ function handleBottomNavClick(event) {
   showTab(button.dataset.tab);
 }
 
-function handleSidebarClicks(event) {
+function adjustAccordionContainer(container) {
+  if (!container) return;
+  container.querySelectorAll('.accordion-item').forEach((item) => {
+    const content = item.querySelector('.accordion-content');
+    if (!content) return;
+    if (item.classList.contains('accordion-open')) {
+      content.style.maxHeight = `${content.scrollHeight}px`;
+    } else {
+      content.style.maxHeight = '0px';
+    }
+  });
+}
+
+function restoreAccordionState() {
+  requestAnimationFrame(() => {
+    adjustAccordionContainer(desktopBibleBooks);
+    adjustAccordionContainer(mobileBibleWrapper);
+  });
+}
+
+function toggleAccordionItem(item) {
+  if (!item) return;
+  const content = item.querySelector('.accordion-content');
+  const bookName = item.dataset.book;
+  const isOpening = !item.classList.contains('accordion-open');
+  if (isOpening) {
+    item.classList.add('accordion-open');
+    if (content) content.style.maxHeight = `${content.scrollHeight}px`;
+    if (bookName) openBibleBooks.add(bookName);
+  } else {
+    if (content) {
+      const currentHeight = content.scrollHeight;
+      content.style.maxHeight = `${currentHeight}px`;
+      requestAnimationFrame(() => {
+        content.style.maxHeight = '0px';
+      });
+    }
+    item.classList.remove('accordion-open');
+    if (bookName) openBibleBooks.delete(bookName);
+  }
+  const root = item.closest('#bible-books-container') || item.closest('#mobile-bible-content-wrapper');
+  if (root) setTimeout(() => adjustAccordionContainer(root), 320);
+}
+
+function handleBibleContainerClick(event) {
   const button = event.target.closest('button');
   if (!button) return;
-  const action = button.dataset.action;
-  if (action === 'toggle-chapter') handleToggleChapter(button);
-  else if (button.classList.contains('accordion-toggle')) {
-    const item = button.closest('.accordion-item');
-    item?.classList.toggle('accordion-open');
-    setTimeout(renderIcons, 100);
+  event.stopPropagation();
+  if (button.dataset.action === 'toggle-chapter') {
+    handleToggleChapter(button);
+    return;
+  }
+  if (button.classList.contains('accordion-toggle')) {
+    toggleAccordionItem(button.closest('.accordion-item'));
   }
 }
 
@@ -670,6 +724,10 @@ function handleMainContentClicks(event) {
   }
   if (button.classList.contains('journal-filter-button')) {
     handleJournalFilterClick(event);
+    return;
+  }
+  if (button.classList.contains('accordion-toggle')) {
+    toggleAccordionItem(button.closest('.accordion-item'));
     return;
   }
   switch (action) {
@@ -1049,6 +1107,28 @@ function handleDrop(event) {
   updateDoc(doc(db, 'devotionalSpaces', coupleId), { goals: itemsArray }).catch(() => showToast('Erro salvar ordem.', 'error'));
 }
 
+async function recoverDevotionalSpace() {
+  if (recoveringSpace || !currentUser) return;
+  recoveringSpace = true;
+  recoveryAttempted = true;
+  showToast('Não foi possível acessar o espaço atual. Criando um novo para vocês...');
+  try {
+    const newSpaceId = await handleCreateSpace(true);
+    if (!newSpaceId) throw new Error('Falha ao criar novo espaço');
+    await updateDoc(doc(db, 'users', currentUser.uid), { coupleId: newSpaceId });
+    if (userProfile) userProfile.coupleId = newSpaceId;
+    coupleId = newSpaceId;
+    openBibleBooks.clear();
+    await listenToDevotionalSpace(newSpaceId);
+    showToast('Novo espaço devocional criado com sucesso.');
+  } catch (error) {
+    console.error('Erro ao recriar espaço:', error);
+    showToast('Não foi possível criar um novo espaço automaticamente.', 'error');
+  } finally {
+    recoveringSpace = false;
+  }
+}
+
 function handleCheckin() {
   const now = new Date().toISOString();
   updateDoc(doc(db, 'devotionalSpaces', coupleId), { [`checkins.${currentUser.uid}`]: now })
@@ -1057,11 +1137,17 @@ function handleCheckin() {
 }
 
 async function listenToDevotionalSpace(id) {
+  if (!id) {
+    console.error('ID do espaço inválido para escuta.');
+    return;
+  }
+  openBibleBooks.clear();
   const spaceRef = doc(db, 'devotionalSpaces', id);
   if (unsubscribeSpace) unsubscribeSpace();
   unsubscribeSpace = onSnapshot(spaceRef, (docSnap) => {
     if (docSnap.exists()) {
       devotionalSpace = docSnap.data();
+      recoveryAttempted = false;
       renderApp();
     } else {
       console.error('Espaço não encontrado:', id);
@@ -1069,6 +1155,11 @@ async function listenToDevotionalSpace(id) {
     }
   }, (error) => {
     console.error('Erro ao ouvir espaço:', error);
+    if (error.code === 'permission-denied') {
+      if (!recoveryAttempted) recoverDevotionalSpace();
+      else showToast('Sem permissão para acessar o espaço atual.', 'error');
+      return;
+    }
     showToast('Erro ao sincronizar dados.', 'error');
   });
 }
@@ -1252,6 +1343,8 @@ async function handleAuthStateChange(user) {
       userProfile = null;
       coupleId = null;
       devotionalSpace = null;
+      openBibleBooks.clear();
+      recoveryAttempted = false;
       if (unsubscribeSpace) {
         unsubscribeSpace();
         unsubscribeSpace = null;
@@ -1274,10 +1367,10 @@ function initApp() {
     desktopTabNav?.addEventListener('click', handleDesktopTabClick);
     bottomNav?.addEventListener('click', handleBottomNavClick);
     $('#mobile-bible-button')?.addEventListener('click', () => showTab('biblia'));
+    desktopBibleBooks?.addEventListener('click', handleBibleContainerClick);
     mainContent?.addEventListener('click', handleMainContentClicks);
     mainContent?.addEventListener('input', handleMainContentInputs);
     mainContent?.addEventListener('submit', handleMainContentSubmits);
-    $('#sidebar')?.addEventListener('click', handleSidebarClicks);
     themeToggleButton?.addEventListener('click', toggleTheme);
     editForm?.addEventListener('submit', handleSaveEdit);
     $('#edit-cancel-button')?.addEventListener('click', closeEditModal);
