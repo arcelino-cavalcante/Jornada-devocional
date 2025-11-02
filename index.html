@@ -7,11 +7,14 @@
     <title>Jornada Devocional</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Jornada Devocional">
+    <meta name="apple-touch-fullscreen" content="yes">
     <meta name="theme-color" content="#f43f5e">
     <link id="manifest-link" rel="manifest">
     <link id="apple-touch-icon" rel="apple-touch-icon">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle fill='%23f43f5e' cx='32' cy='32' r='32'/%3E%3Ctext x='32' y='40' font-size='28' text-anchor='middle' fill='white' font-family='Arial, sans-serif'%3EJD%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -233,25 +236,6 @@
             background: linear-gradient(135deg, rgba(30, 64, 175, 0.35), rgba(15, 23, 42, 0.9));
         }
 
-        .billing-banner {
-            border: 1px solid rgba(244, 63, 94, 0.2);
-            background: linear-gradient(135deg, rgba(254, 205, 211, 0.4), rgba(255, 255, 255, 0.9));
-        }
-
-        .dark .billing-banner {
-            border-color: rgba(254, 205, 211, 0.35);
-            background: linear-gradient(135deg, rgba(190, 18, 60, 0.15), rgba(30, 41, 59, 0.9));
-        }
-
-        .billing-badge {
-            background-color: #f43f5e;
-            color: #fff;
-        }
-
-        .dark .billing-badge {
-            background-color: #fecdd3;
-            color: #be123c;
-        }
 
         .feature-locked-card {
             border: 1px dashed rgba(244, 63, 94, 0.6);
@@ -280,23 +264,31 @@
         <div class="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-2xl shadow-xl text-center max-w-md w-full">
             <h1 class="text-3xl md:text-4xl font-bold text-primary-dark dark:text-primary-light mb-2">Jornada Devocional
             </h1>
-            <p class="text-slate-600 dark:text-slate-400 mb-8">Um espaço para crescerem juntos na fé.</p><button
-                id="login-button"
-                class="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white font-medium py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center space-x-3"><svg
-                    class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                    <path fill="#FFC107"
-                        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
-                    </path>
-                    <path fill="#FF3D00"
-                        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
-                    </path>
-                    <path fill="#4CAF50"
-                        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.223,0-9.641-3.219-11.303-7.618l-6.571,4.819C9.656,39.663,16.318,44,24,44z">
-                    </path>
-                    <path fill="#1976D2"
-                        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.991,36.627,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z">
-                    </path>
-                </svg><span>Entrar com Google</span></button>
+            <p class="text-slate-600 dark:text-slate-400 mb-6">
+                Entre com o e-mail e a senha que enviamos para você após a assinatura.
+            </p>
+            <form id="login-form" class="space-y-4 text-left">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">E-mail</label>
+                    <input id="login-email" type="email" required autocomplete="email"
+                        class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                        placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Senha</label>
+                    <input id="login-password" type="password" required autocomplete="current-password"
+                        class="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                        placeholder="Digite sua senha">
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2">
+                    <i data-lucide="mail" class="w-5 h-5"></i><span>Entrar com e-mail e senha</span>
+                </button>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Caso não tenha recebido suas credenciais, entre em contato conosco para liberar o acesso.
+                </p>
+                <p id="login-error" class="hidden text-sm text-red-500"></p>
+            </form>
         </div>
     </div>
     <div id="coupling-screen" class="hidden h-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
@@ -352,10 +344,6 @@
                             data-lucide="copy"
                             class="w-4 h-4 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"></i></button>
                 </div>
-                <button id="open-upgrade-modal"
-                    class="hidden md:inline-flex items-center space-x-2 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-primary-dark transition-colors">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i><span>Plano Pro</span>
-                </button>
                 <div class="relative" id="user-menu-container">
                     <button id="user-menu-toggle"
                         class="flex items-center space-x-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
@@ -373,12 +361,18 @@
                                 id="theme-icon-sun" data-lucide="sun" class="w-4 h-4 text-yellow-500"></i><i
                                 id="theme-icon-moon" data-lucide="moon"
                                 class="w-4 h-4 hidden text-blue-400"></i><span>Alternar Tema</span></button>
-                        <button id="ios-install-button"
-                            class="hidden w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2"><i
-                                data-lucide="plus-square" class="w-4 h-4"></i><span>Instalar no iPhone/iPad</span></button>
+                        <button id="menu-install-android"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2"><i
+                                data-lucide="smartphone" class="w-4 h-4"></i><span>Instalar no Android</span></button>
+                        <button id="menu-install-ios"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2 border-b border-slate-100 dark:border-slate-700/60"><i
+                                data-lucide="smartphone-nfc" class="w-4 h-4"></i><span>Instalar no iPhone/iPad</span></button>
                         <button id="logout-button"
                             class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2 border-t border-slate-100 dark:border-slate-700/60"><i
                                 data-lucide="log-out" class="w-4 h-4"></i><span>Sair</span></button>
+                        <button id="reset-space-button"
+                            class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center space-x-2 border-t border-slate-100 dark:border-slate-700/60"><i
+                                data-lucide="trash-2" class="w-4 h-4"></i><span>Apagar meus dados</span></button>
                     </div>
                 </div>
             </div>
@@ -392,51 +386,6 @@
             </aside>
             <main id="main-content" class="flex-1 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-6"
                 style="padding-bottom: calc(5rem + var(--safe-area-inset-bottom));">
-                <div id="billing-banner"
-                    class="hidden billing-banner rounded-xl px-4 py-4 md:px-6 md:py-5 mb-5 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-6">
-                    <div class="space-y-2">
-                        <div class="flex items-center space-x-2">
-                            <span id="billing-status-chip"
-                                class="billing-badge text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full">Trial</span>
-                            <span id="billing-heading"
-                                class="text-base md:text-lg font-semibold text-primary-dark dark:text-primary-light">Plano
-                                Pro desbloqueia tudo</span>
-                        </div>
-                        <p id="billing-subheading" class="text-sm text-slate-700 dark:text-slate-300">Experimente todas
-                            as funções por 3 dias gratuitamente.</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                        <button id="billing-cta"
-                            class="bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i><span>Quero o Pro</span>
-                        </button>
-                        <button id="billing-more"
-                            class="outline-none border text-primary-dark dark:text-primary-light px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            style="border-color: rgba(244,63,94,0.3);">
-                            Já sou assinante
-                        </button>
-                    </div>
-                </div>
-                <div id="pwa-install-banner"
-                    class="hidden rounded-xl px-4 py-4 md:px-6 md:py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div class="space-y-1">
-                        <div class="flex items-center space-x-2 text-slate-800 dark:text-slate-100">
-                            <i data-lucide="smartphone" class="w-5 h-5 text-blue-500 dark:text-blue-300"></i>
-                            <h3 class="text-base md:text-lg font-semibold">Instale o aplicativo Jornada Devocional</h3>
-                        </div>
-                        <p class="text-sm text-slate-600 dark:text-slate-300">Tenha acesso rápido, notificações e tela
-                            cheia. Disponível para Android e iOS.</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button id="install-app-button"
-                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center space-x-2">
-                            <i data-lucide="download" class="w-4 h-4"></i><span>Instalar app</span>
-                        </button>
-                        <button id="dismiss-install-banner"
-                            class="text-sm text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 transition-colors">Agora
-                            não</button>
-                    </div>
-                </div>
                 <nav id="desktop-tab-nav"
                     class="hidden md:flex flex-wrap items-center border-b border-slate-200 dark:border-slate-700 mb-6 -mx-4 px-4 md:-mx-6 md:px-6 -mt-4 pt-4 md:-mt-6 md:pt-6 bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
                     <button data-tab="progresso"
@@ -624,8 +573,8 @@
         </div>
         <footer id="bottom-nav"
             class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-[0_-2px_6px_rgba(0,0,0,0.06)] md:hidden"
-            style="padding-bottom: var(--safe-area-inset-bottom);">
-            <div class="flex justify-around items-center h-16"><button data-tab="progresso"
+            style="padding-bottom: calc(var(--safe-area-inset-bottom) + 0.5rem);">
+            <div class="flex justify-around items-center h-[4.5rem]"><button data-tab="progresso"
                     class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
                         data-lucide="pie-chart" class="w-5 h-5 mb-0.5"></i><span>Progresso</span></button><button
                     data-tab="diario"
@@ -792,47 +741,70 @@
                 acesso ao seu espaço atual.</p>
         </div>
     </div>
-    <div id="pwa-instructions-modal"
+    <div id="install-modal"
         class="hidden fixed inset-0 z-50 bg-black/60 dark:bg-black/70 flex items-start md:items-center justify-center modal-overlay overflow-y-auto">
         <div
             class="modal-content relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl p-4 sm:p-6 md:p-8 pt-12 sm:pt-10 md:pt-12 space-y-6 border border-slate-200 dark:border-slate-800">
-            <button id="close-pwa-instructions"
+            <button id="close-install-modal"
                 class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><i
                     data-lucide="x" class="w-6 h-6"></i></button>
             <div class="space-y-2">
-                <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Como instalar o app no seu
-                    dispositivo</h2>
+                <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Instale o app na sua tela inicial</h2>
                 <p class="text-sm text-slate-600 dark:text-slate-300">Siga os passos abaixo para adicionar o Jornada
-                    Devocional à sua tela inicial.</p>
+                    Devocional ao seu dispositivo.</p>
             </div>
             <div class="space-y-5">
-                <section class="space-y-2">
+                <section class="space-y-2" data-install-section="android">
                     <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
                         <i data-lucide="smartphone" class="w-5 h-5 text-blue-500"></i><span>Android (Chrome)</span>
                     </h3>
-                    <ol class="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside">
-                        <li>Toque no menu com três pontos no canto superior direito.</li>
-                        <li>Selecione <span class="font-semibold">Instalar app</span> ou <span
-                                class="font-semibold">Adicionar à tela inicial</span>.</li>
-                        <li>Confirme em <span class="font-semibold">Instalar</span> e o atalho aparecerá na sua tela
-                            inicial.</li>
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                        <li>Abra o menu de três pontos no canto superior direito do Chrome.</li>
+                        <li>Escolha <strong>Instalar app</strong> ou <strong>Adicionar à tela inicial</strong>.</li>
+                        <li>Confirme em <strong>Instalar</strong> e procure o ícone na sua tela inicial.</li>
                     </ol>
                 </section>
-                <section class="space-y-2">
+                <section class="space-y-2" data-install-section="ios">
                     <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
-                        <i data-lucide="phone" class="w-5 h-5 text-pink-500"></i><span>iPhone / iPad (Safari)</span>
+                        <i data-lucide="smartphone-nfc" class="w-5 h-5 text-pink-500"></i><span>iPhone / iPad
+                            (Safari)</span>
                     </h3>
-                    <ol class="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside">
-                        <li>Toque no ícone <span class="font-semibold">Compartilhar</span> (quadrado com seta para cima)
-                            na barra inferior.</li>
-                        <li>Role a lista e escolha <span class="font-semibold">Adicionar à Tela de Início</span>.</li>
-                        <li>Toque em <span class="font-semibold">Adicionar</span> e o app será instalado como atalho.
+                    <ol class="list-decimal list-inside space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                        <li>Toque no ícone <strong>Compartilhar</strong> (quadrado com seta para cima) na barra inferior.
                         </li>
+                        <li>Role e selecione <strong>Adicionar à Tela de Início</strong>.</li>
+                        <li>Confirme em <strong>Adicionar</strong> e o atalho será criado.</li>
                     </ol>
                 </section>
             </div>
-            <button id="pwa-instructions-ok"
+            <button id="install-modal-ok"
                 class="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2 rounded-lg transition-colors">Entendi</button>
+        </div>
+    </div>
+    <div id="reset-modal"
+        class="hidden fixed inset-0 z-50 bg-black/60 dark:bg-black/70 flex items-start md:items-center justify-center modal-overlay overflow-y-auto">
+        <div
+            class="modal-content relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md p-4 sm:p-6 space-y-5 border border-slate-200 dark:border-slate-800">
+            <button id="close-reset-modal"
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><i
+                    data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="space-y-2">
+                <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Apagar todos os dados?</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                    Esta ação vai remover anotações, metas, orações, diário, progresso bíblico, check-ins e contadores
+                    deste espaço devocional. Não é possível desfazer.
+                </p>
+            </div>
+            <div class="space-y-3">
+                <p class="text-sm text-slate-600 dark:text-slate-300">Deseja realmente limpar tudo e começar do zero?</p>
+                <div class="flex flex-col sm:flex-row sm:justify-end gap-2">
+                    <button id="reset-cancel-button"
+                        class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                    <button id="reset-confirm-button"
+                        class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors flex items-center justify-center space-x-2"><i
+                            data-lucide="trash-2" class="w-4 h-4"></i><span>Apagar tudo</span></button>
+                </div>
+            </div>
         </div>
     </div>
 
