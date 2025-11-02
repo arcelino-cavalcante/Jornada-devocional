@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada Devocional</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jornada Devocional">
+    <meta name="theme-color" content="#f43f5e">
+    <link id="manifest-link" rel="manifest">
+    <link id="apple-touch-icon" rel="apple-touch-icon">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: { light: '#fecdd3', DEFAULT: '#f43f5e', dark: '#be123c' }, secondary: '#fdf2f8' } } } };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0rem);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .accordion-open .accordion-content {
+            max-height: 1000px;
+        }
+
+        .accordion-open .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .active-tab,
+        .active-nav-button {
+            color: #f43f5e !important;
+        }
+
+        #desktop-tab-nav .active-tab {
+            border-color: #f43f5e !important;
+        }
+
+        #mobile-bible-button.active-nav-button {
+            background-color: #be123c !important;
+        }
+
+        @keyframes pulseAndFade {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+
+            80% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        #splash-content {
+            animation: pulseAndFade 2.5s ease-in-out forwards;
+        }
+
+        .tag-badge {
+            background-color: #fecdd3;
+            color: #be123c;
+        }
+
+        .dark .tag-badge {
+            background-color: #be123c;
+            color: #fecdd3;
+        }
+
+        .filter-button.active-filter {
+            background-color: #f43f5e;
+            color: white;
+        }
+
+        .dark .filter-button.active-filter {
+            background-color: #fecdd3;
+            color: #be123c;
+        }
+
+        .draggable-item {
+            cursor: grab;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background: #fef2f2;
+            dark: background: #444;
+            border: 2px dashed #f43f5e;
+        }
+
+        .drag-over {
+            border-top: 2px solid #f43f5e;
+        }
+
+        .highlighted-prayer button[data-action="highlight-prayer"] i {
+            fill: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .journal-filter-button.active-journal-filter {
+            border-color: #f43f5e;
+            color: #f43f5e;
+        }
+
+        body.locked-app #sidebar,
+        body.locked-app #tab-content,
+        body.locked-app #desktop-tab-nav,
+        body.locked-app #bottom-nav {
+            opacity: 0.35;
+            filter: grayscale(0.4);
+            transition: opacity 0.3s ease;
+        }
+
+        body.locked-app #tab-content button,
+        body.locked-app #tab-content input,
+        body.locked-app #tab-content textarea,
+        body.locked-app #tab-content select {
+            pointer-events: none;
+        }
+
+        body.locked-app #tab-content .feature-locked-card,
+        body.locked-app #tab-content .feature-locked-card * {
+            pointer-events: auto;
+        }
+
+        body.locked-app #sidebar button {
+            pointer-events: none;
+        }
+
+        body.locked-app #bottom-nav button {
+            pointer-events: none;
+        }
+
+        body.locked-app #desktop-tab-nav button {
+            pointer-events: none;
+        }
+
+        #user-menu-toggle {
+            border-radius: 9999px;
+            padding: 0;
+        }
+
+        #user-menu-toggle:focus-visible {
+            outline: 2px solid rgba(244, 63, 94, 0.45);
+            outline-offset: 3px;
+        }
+
+        .modal-overlay {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .modal-overlay {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+        }
+
+        .modal-content {
+            width: 100%;
+            max-height: calc(100vh - 2.5rem);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 9999px;
+        }
+
+        #pwa-install-banner {
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, rgba(191, 219, 254, 0.6), rgba(239, 246, 255, 0.9));
+        }
+
+        .dark #pwa-install-banner {
+            border-color: rgba(147, 197, 253, 0.3);
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.35), rgba(15, 23, 42, 0.9));
+        }
+
+        .billing-banner {
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            background: linear-gradient(135deg, rgba(254, 205, 211, 0.4), rgba(255, 255, 255, 0.9));
+        }
+
+        .dark .billing-banner {
+            border-color: rgba(254, 205, 211, 0.35);
+            background: linear-gradient(135deg, rgba(190, 18, 60, 0.15), rgba(30, 41, 59, 0.9));
+        }
+
+        .billing-badge {
+            background-color: #f43f5e;
+            color: #fff;
+        }
+
+        .dark .billing-badge {
+            background-color: #fecdd3;
+            color: #be123c;
+        }
+
+        .feature-locked-card {
+            border: 1px dashed rgba(244, 63, 94, 0.6);
+            background-color: rgba(254, 205, 211, 0.3);
+        }
+
+        .dark .feature-locked-card {
+            border-color: rgba(254, 205, 211, 0.65);
+            background-color: rgba(190, 18, 60, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 antialiased text-slate-800 dark:text-slate-200 h-screen">
+    <div id="loading-screen"
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-slate-900">
+        <div id="splash-content" class="text-center flex flex-col items-center"><i data-lucide="heart-handshake"
+                class="w-16 h-16 text-primary"></i>
+            <h1 class="text-3xl md:text-4xl font-bold text-primary-dark dark:text-primary-light mt-4">Jornada Devocional
+            </h1>
+        </div>
+        <p class="mt-4 text-sm text-slate-500 dark:text-slate-400 absolute bottom-10">Carregando...</p>
+    </div>
+    <div id="login-screen"
+        class="hidden h-full flex items-center justify-center bg-gradient-to-br from-primary-light to-white dark:from-slate-800 dark:to-slate-900 p-4">
+        <div class="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-2xl shadow-xl text-center max-w-md w-full">
+            <h1 class="text-3xl md:text-4xl font-bold text-primary-dark dark:text-primary-light mb-2">Jornada Devocional
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400 mb-8">Um espaço para crescerem juntos na fé.</p><button
+                id="login-button"
+                class="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-white font-medium py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center space-x-3"><svg
+                    class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#FFC107"
+                        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
+                    </path>
+                    <path fill="#FF3D00"
+                        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
+                    </path>
+                    <path fill="#4CAF50"
+                        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.223,0-9.641-3.219-11.303-7.618l-6.571,4.819C9.656,39.663,16.318,44,24,44z">
+                    </path>
+                    <path fill="#1976D2"
+                        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.991,36.627,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z">
+                    </path>
+                </svg><span>Entrar com Google</span></button>
+        </div>
+    </div>
+    <div id="coupling-screen" class="hidden h-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <div class="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">Conecte-se ao seu par</h2>
+            <p class="text-slate-600 dark:text-slate-400 mb-8">Crie um novo espaço devocional ou junte-se a um
+                existente.</p>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-lg font-semibold text-primary-dark dark:text-primary-light mb-2">Criar um novo
+                        espaço</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Inicie um espaço compartilhado e convide
+                        seu par.</p><button id="create-space-button"
+                        class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                            data-lucide="plus-circle" class="w-5 h-5"></i><span>Criar Espaço</span></button>
+                </div>
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div><span
+                        class="flex-shrink mx-4 text-slate-400 text-sm">OU</span>
+                    <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-primary-dark dark:text-primary-light mb-2">Entrar em um espaço
+                    </h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Insira o ID do espaço fornecido pelo seu
+                        par.</p>
+                    <form id="join-space-form" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+                        <input id="join-space-input" type="text" placeholder="Cole o ID do espaço aqui"
+                            class="flex-grow w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                            required><button type="submit"
+                            class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-3 px-5 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                                data-lucide="arrow-right-circle" class="w-5 h-5"></i><span>Entrar</span></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="main-app" class="hidden h-screen flex flex-col">
+        <header id="main-header"
+            class="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 shadow-md dark:border-b dark:border-slate-800 h-16 flex items-center justify-between px-4">
+            <div class="flex items-center space-x-3"><button id="mobile-bible-button"
+                    class="md:hidden flex items-center space-x-1.5 bg-primary text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-primary-dark transition-colors"><i
+                        data-lucide="book-open" class="w-5 h-5"></i><span>Bíblia</span></button><i
+                    data-lucide="heart-handshake" class="w-7 h-7 text-primary flex-shrink-0 hidden md:block"></i>
+                <h1 class="text-xl font-bold text-primary-dark dark:text-primary-light hidden md:block">Jornada
+                    Devocional</h1>
+            </div>
+            <div class="flex items-center space-x-3 md:space-x-4">
+                <div
+                    class="hidden md:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5">
+                    <span class="text-sm font-mono text-slate-600 dark:text-slate-400"
+                        id="header-couple-id">...</span><button id="copy-id-button" title="Copiar ID do espaço"><i
+                            data-lucide="copy"
+                            class="w-4 h-4 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"></i></button>
+                </div>
+                <button id="open-upgrade-modal"
+                    class="hidden md:inline-flex items-center space-x-2 bg-primary text-white px-3 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-primary-dark transition-colors">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i><span>Plano Pro</span>
+                </button>
+                <div class="relative" id="user-menu-container">
+                    <button id="user-menu-toggle"
+                        class="flex items-center space-x-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                        <img id="header-avatar" src="" alt="Avatar"
+                            class="w-10 h-10 rounded-full border-2 border-primary-light">
+                        <i data-lucide="chevron-down" class="hidden md:block w-4 h-4 text-primary-dark dark:text-primary-light"></i>
+                    </button>
+                    <div id="user-menu"
+                        class="absolute hidden right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-md shadow-lg py-1 z-50 border dark:border-slate-700">
+                        <button id="connect-partner-button"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2"><i
+                                data-lucide="link" class="w-4 h-4"></i><span>Conectar/Convidar</span></button>
+                        <button id="theme-toggle-button"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2"><i
+                                id="theme-icon-sun" data-lucide="sun" class="w-4 h-4 text-yellow-500"></i><i
+                                id="theme-icon-moon" data-lucide="moon"
+                                class="w-4 h-4 hidden text-blue-400"></i><span>Alternar Tema</span></button>
+                        <button id="ios-install-button"
+                            class="hidden w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2"><i
+                                data-lucide="plus-square" class="w-4 h-4"></i><span>Instalar no iPhone/iPad</span></button>
+                        <button id="logout-button"
+                            class="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center space-x-2 border-t border-slate-100 dark:border-slate-700/60"><i
+                                data-lucide="log-out" class="w-4 h-4"></i><span>Sair</span></button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="flex flex-1 pt-16 h-full overflow-hidden">
+            <aside id="sidebar"
+                class="w-full md:w-80 lg:w-96 flex-shrink-0 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 h-full overflow-y-auto p-4 md:p-6 hidden md:block">
+                <h2 class="text-xl font-semibold mb-4 text-primary-dark dark:text-primary-light">Leitura da Bíblia</h2>
+                <div id="bible-progress-summary" class="mb-4"></div>
+                <div id="bible-books-container" class="space-y-2"></div>
+            </aside>
+            <main id="main-content" class="flex-1 h-full overflow-y-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-6"
+                style="padding-bottom: calc(5rem + var(--safe-area-inset-bottom));">
+                <div id="billing-banner"
+                    class="hidden billing-banner rounded-xl px-4 py-4 md:px-6 md:py-5 mb-5 flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-6">
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <span id="billing-status-chip"
+                                class="billing-badge text-xs font-semibold uppercase tracking-wide px-3 py-1 rounded-full">Trial</span>
+                            <span id="billing-heading"
+                                class="text-base md:text-lg font-semibold text-primary-dark dark:text-primary-light">Plano
+                                Pro desbloqueia tudo</span>
+                        </div>
+                        <p id="billing-subheading" class="text-sm text-slate-700 dark:text-slate-300">Experimente todas
+                            as funções por 3 dias gratuitamente.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <button id="billing-cta"
+                            class="bg-primary hover:bg-primary-dark text-white font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i><span>Quero o Pro</span>
+                        </button>
+                        <button id="billing-more"
+                            class="outline-none border text-primary-dark dark:text-primary-light px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            style="border-color: rgba(244,63,94,0.3);">
+                            Já sou assinante
+                        </button>
+                    </div>
+                </div>
+                <div id="pwa-install-banner"
+                    class="hidden rounded-xl px-4 py-4 md:px-6 md:py-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2 text-slate-800 dark:text-slate-100">
+                            <i data-lucide="smartphone" class="w-5 h-5 text-blue-500 dark:text-blue-300"></i>
+                            <h3 class="text-base md:text-lg font-semibold">Instale o aplicativo Jornada Devocional</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 dark:text-slate-300">Tenha acesso rápido, notificações e tela
+                            cheia. Disponível para Android e iOS.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="install-app-button"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center space-x-2">
+                            <i data-lucide="download" class="w-4 h-4"></i><span>Instalar app</span>
+                        </button>
+                        <button id="dismiss-install-banner"
+                            class="text-sm text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 transition-colors">Agora
+                            não</button>
+                    </div>
+                </div>
+                <nav id="desktop-tab-nav"
+                    class="hidden md:flex flex-wrap items-center border-b border-slate-200 dark:border-slate-700 mb-6 -mx-4 px-4 md:-mx-6 md:px-6 -mt-4 pt-4 md:-mt-6 md:pt-6 bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
+                    <button data-tab="progresso"
+                        class="tab-button flex items-center space-x-2 px-3 py-2 font-medium text-sm rounded-md border-b-2 text-slate-600 dark:text-slate-400 hover:text-primary border-transparent"><i
+                            data-lucide="pie-chart" class="w-4 h-4"></i><span>Progresso</span></button><button
+                        data-tab="diario"
+                        class="tab-button flex items-center space-x-2 px-3 py-2 font-medium text-sm rounded-md border-b-2 text-slate-600 dark:text-slate-400 hover:text-primary border-transparent"><i
+                            data-lucide="book-heart" class="w-4 h-4"></i><span>Diário</span></button><button
+                        data-tab="anotacoes"
+                        class="tab-button flex items-center space-x-2 px-3 py-2 font-medium text-sm rounded-md border-b-2 text-slate-600 dark:text-slate-400 hover:text-primary border-transparent"><i
+                            data-lucide="book-marked" class="w-4 h-4"></i><span>Anotações</span></button><button
+                        data-tab="metas"
+                        class="tab-button flex items-center space-x-2 px-3 py-2 font-medium text-sm rounded-md border-b-2 text-slate-600 dark:text-slate-400 hover:text-primary border-transparent"><i
+                            data-lucide="check-circle-2" class="w-4 h-4"></i><span>Metas</span></button><button
+                        data-tab="oracao"
+                        class="tab-button flex items-center space-x-2 px-3 py-2 font-medium text-sm rounded-md border-b-2 text-slate-600 dark:text-slate-400 hover:text-primary border-transparent"><i
+                            data-lucide="hand-heart" class="w-4 h-4"></i><span>Oração</span></button>
+                </nav>
+                <div id="tab-content">
+                    <div id="tab-progresso"
+                        class="tab-panel grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                        <div id="checkin-card" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm"></div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="p-3 rounded-full bg-primary-light text-primary-dark"><i
+                                        data-lucide="calendar-heart" class="w-6 h-6"></i></div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">Dias na igreja
+                                        juntos</h3><span id="church-days-count"
+                                        class="text-3xl font-bold text-slate-800 dark:text-slate-200">0</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2"><button data-action="church-days-decrement"
+                                    class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold py-2 px-4 rounded-md transition-colors">-</button><button
+                                    data-action="church-days-increment"
+                                    class="flex-1 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-md transition-colors">+</button>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-600"><i data-lucide="book-open-check"
+                                        class="w-6 h-6"></i></div>
+                                <div>
+                                    <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">Capítulos Lidos
+                                    </h3><span id="chapters-read-count"
+                                        class="text-3xl font-bold text-slate-800 dark:text-slate-200">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="streak-card" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm"></div>
+                        <div id="weekly-read-card" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm"></div>
+                        <div id="popular-tags-card" class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm"></div>
+                    </div>
+                    <div id="tab-biblia" class="tab-panel hidden">
+                        <h2 class="text-2xl font-semibold mb-4 text-primary-dark dark:text-primary-light md:hidden">
+                            Leitura da Bíblia</h2>
+                        <div id="mobile-bible-content-wrapper" class="space-y-2"></div>
+                    </div>
+                    <div id="tab-diario" class="tab-panel hidden space-y-6">
+                        <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-200 md:hidden">Diário</h2>
+                        <form id="add-journal-form"
+                            class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 hidden md:block">Nova
+                                Entrada no Diário</h3>
+                            <div><label for="journal-title"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título</label><input
+                                    type="text" id="journal-title"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                                    required></div>
+                            <div><label for="journal-text"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Reflexão</label><textarea
+                                    id="journal-text" rows="5"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                                    required></textarea></div>
+                            <div class="flex items-center space-x-2"><input id="journal-shared" type="checkbox"
+                                    class="h-4 w-4 rounded text-primary focus:ring-primary" checked><label
+                                    for="journal-shared" class="text-sm text-slate-600 dark:text-slate-300">Compartilhar
+                                    com seu par</label></div><button type="submit"
+                                class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                                    data-lucide="save" class="w-5 h-5"></i><span>Salvar Entrada</span></button>
+                        </form>
+                        <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm">
+                            <div class="flex items-center border-b border-slate-200 dark:border-slate-700 mb-4"><button
+                                    data-journal-filter="shared"
+                                    class="journal-filter-button flex-1 pb-2 text-center font-medium border-b-2 text-slate-500 dark:text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300">Compartilhadas</button><button
+                                    data-journal-filter="private"
+                                    class="journal-filter-button flex-1 pb-2 text-center font-medium border-b-2 text-slate-500 dark:text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-slate-600 hover:text-slate-700 dark:hover:text-slate-300">Minhas
+                                    Entradas</button></div>
+                            <div id="journal-list" class="space-y-4 max-h-[30rem] overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                    <div id="tab-anotacoes" class="tab-panel hidden space-y-6">
+                        <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-200 md:hidden">Anotações</h2>
+                        <form id="add-note-form"
+                            class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 hidden md:block">
+                                Adicionar Anotação</h3>
+                            <div><label for="note-ref"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Referência
+                                    Associada (Opcional)</label><input type="text" id="note-ref"
+                                    placeholder="Ex: João 3:16"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none">
+                            </div>
+                            <div><label for="note-text"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Anotação</label><textarea
+                                    id="note-text" rows="4"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                                    required></textarea></div>
+                            <div><label for="note-tags"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tags
+                                    (separadas por vírgula)</label><input type="text" id="note-tags"
+                                    placeholder="Ex: Fé, Amor, Testemunho"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none">
+                            </div><button type="submit"
+                                class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                                    data-lucide="save" class="w-5 h-5"></i><span>Salvar</span></button>
+                        </form>
+                        <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2 sm:mb-0">Suas
+                                    Anotações</h3>
+                                <div id="note-filters" class="flex flex-wrap gap-2"></div>
+                            </div><input type="text" id="search-notes" placeholder="Buscar anotações..."
+                                class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 mb-4 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none">
+                            <div id="notes-list" class="space-y-4 max-h-[30rem] overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                    <div id="tab-metas" class="tab-panel hidden space-y-6">
+                        <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-200 md:hidden">Metas</h2>
+                        <form id="add-goal-form"
+                            class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 hidden md:block">
+                                Adicionar Meta</h3>
+                            <div><label for="goal-text"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição
+                                    da Meta</label><input type="text" id="goal-text"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                                    required></div><button type="submit"
+                                class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                                    data-lucide="plus" class="w-5 h-5"></i><span>Adicionar</span></button>
+                        </form>
+                        <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">Suas Metas</h3>
+                            <div id="goals-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                    <div id="tab-oracao" class="tab-panel hidden space-y-6">
+                        <h2 class="text-2xl font-semibold text-slate-800 dark:text-slate-200 md:hidden">Mural de Oração
+                        </h2>
+                        <form id="add-prayer-form"
+                            class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm space-y-4">
+                            <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 hidden md:block">
+                                Adicionar Pedido</h3>
+                            <div><label for="prayer-text"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pedido</label><textarea
+                                    id="prayer-text" rows="3"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                                    required></textarea></div>
+                            <div><label for="prayer-ref"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Referência
+                                    Associada (Opcional)</label><input type="text" id="prayer-ref"
+                                    placeholder="Ex: Filipenses 4:6"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none">
+                            </div>
+                            <div><label for="prayer-tags"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tags
+                                    (separadas por vírgula)</label><input type="text" id="prayer-tags"
+                                    placeholder="Ex: Saúde, Família"
+                                    class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none">
+                            </div><button type="submit"
+                                class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2"><i
+                                    data-lucide="plus" class="w-5 h-5"></i><span>Adicionar</span></button>
+                        </form>
+                        <div class="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-lg shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2 sm:mb-0">Mural
+                                    de Oração</h3>
+                                <div id="prayer-filters" class="flex flex-wrap gap-2"></div>
+                            </div>
+                            <div id="prayers-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <footer id="bottom-nav"
+            class="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-[0_-2px_6px_rgba(0,0,0,0.06)] md:hidden"
+            style="padding-bottom: var(--safe-area-inset-bottom);">
+            <div class="flex justify-around items-center h-16"><button data-tab="progresso"
+                    class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
+                        data-lucide="pie-chart" class="w-5 h-5 mb-0.5"></i><span>Progresso</span></button><button
+                    data-tab="diario"
+                    class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
+                        data-lucide="book-heart" class="w-5 h-5 mb-0.5"></i><span>Diário</span></button><button
+                    data-tab="anotacoes"
+                    class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
+                        data-lucide="book-marked" class="w-5 h-5 mb-0.5"></i><span>Anotações</span></button><button
+                    data-tab="metas"
+                    class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
+                        data-lucide="check-circle-2" class="w-5 h-5 mb-0.5"></i><span>Metas</span></button><button
+                    data-tab="oracao"
+                    class="bottom-nav-button flex-1 flex flex-col items-center justify-center text-xs font-medium text-slate-500 dark:text-slate-400 p-1"><i
+                        data-lucide="hand-heart" class="w-5 h-5 mb-0.5"></i><span>Oração</span></button></div>
+        </footer>
+    </div>
+    <div id="toast"
+        class="hidden fixed right-5 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-all transform"
+        style="bottom: calc(5rem + var(--safe-area-inset-bottom));"><span id="toast-message"></span></div>
+    <div id="edit-modal"
+        class="hidden fixed inset-0 z-50 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md space-y-4">
+            <h2 id="edit-modal-title" class="text-xl font-semibold text-slate-800 dark:text-slate-200">Editar Item</h2>
+            <form id="edit-form" class="space-y-4"><input type="hidden" id="edit-item-id"><input type="hidden"
+                    id="edit-item-type">
+                <div id="edit-field-ref" class="hidden"><label for="edit-ref"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Referência</label><input
+                        type="text" id="edit-ref"
+                        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 outline-none">
+                </div>
+                <div id="edit-field-title" class="hidden"><label for="edit-title"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título</label><input
+                        type="text" id="edit-title"
+                        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 outline-none">
+                </div>
+                <div id="edit-field-text" class="hidden"><label for="edit-text"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Texto</label><textarea
+                        id="edit-text" rows="4"
+                        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 outline-none"></textarea>
+                </div>
+                <div id="edit-field-tags" class="hidden"><label for="edit-tags"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tags (separadas por
+                        vírgula)</label><input type="text" id="edit-tags"
+                        class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 outline-none">
+                </div>
+                <div id="edit-field-visibility" class="hidden">
+                    <div class="flex items-center space-x-2"><input id="edit-visibility" type="checkbox"
+                            class="h-4 w-4 rounded text-primary focus:ring-primary"><label for="edit-visibility"
+                            class="text-sm text-slate-600 dark:text-slate-300">Compartilhar com seu par</label></div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4"><button type="button" id="edit-cancel-button"
+                        class="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Cancelar</button><button
+                        type="submit"
+                        class="px-5 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white transition-colors">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="upgrade-modal"
+        class="hidden fixed inset-0 z-50 bg-black/60 dark:bg-black/70 flex items-start md:items-center justify-center modal-overlay overflow-y-auto">
+        <div
+            class="modal-content relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-3xl p-4 sm:p-6 md:p-8 pt-12 sm:pt-10 md:pt-12 space-y-6 border border-slate-200 dark:border-slate-800">
+            <button id="close-upgrade-modal"
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><i
+                    data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="space-y-3 pr-8 sm:pr-0">
+                <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Desbloqueie tudo com o Pro</h2>
+                <p class="text-slate-600 dark:text-slate-300">Acesso completo para você e seu par: notas, metas,
+                    orações, diário compartilhado e acompanhamento bíblico ilimitado.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div class="rounded-xl p-5 space-y-3 border"
+                    style="border-color: rgba(244,63,94,0.35); background: rgba(254,205,211,0.25);">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="calendar-range" class="w-5 h-5 text-primary-dark dark:text-primary-light"></i>
+                        <h3 class="text-lg font-semibold text-primary-dark dark:text-primary-light">Plano Mensal</h3>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">Renovação automática a cada mês. Cancela a
+                        qualquer momento.</p>
+                    <p class="text-3xl font-bold text-primary-dark dark:text-primary-light">R$ 16,90</p>
+                    <a id="kiwify-monthly-link" target="_blank" rel="noopener"
+                        class="inline-flex items-center justify-center w-full bg-primary hover:bg-primary-dark text-white font-semibold py-2 rounded-lg transition-colors space-x-2">
+                        <i data-lucide="external-link" class="w-4 h-4"></i><span>Assinar mensal</span>
+                    </a>
+                </div>
+                <div class="rounded-xl p-5 space-y-3 relative overflow-hidden border"
+                    style="border-color: rgba(16,185,129,0.45); background: rgba(236,253,245,0.9);">
+                    <span
+                        class="absolute top-3 right-3 text-xs font-semibold uppercase tracking-wide bg-emerald-500 text-white px-3 py-1 rounded-full shadow-sm">Mais
+                        popular</span>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="calendar-heart" class="w-5 h-5 text-emerald-600 dark:text-emerald-300"></i>
+                        <h3 class="text-lg font-semibold text-emerald-700 dark:text-emerald-200">Plano Anual</h3>
+                    </div>
+                    <p class="text-sm text-emerald-700 dark:text-emerald-200">Economize mais de 80% comparado ao mensal.
+                        Cobrança única por ano.</p>
+                    <p class="text-3xl font-bold text-emerald-700 dark:text-emerald-200">R$ 39,00</p>
+                    <a id="kiwify-annual-link" target="_blank" rel="noopener"
+                        class="inline-flex items-center justify-center w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 rounded-lg transition-colors space-x-2">
+                        <i data-lucide="external-link" class="w-4 h-4"></i><span>Assinar anual</span>
+                    </a>
+                </div>
+            </div>
+            <div
+                class="bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-2">
+                <div class="flex items-start space-x-3">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-primary-dark dark:text-primary-light mt-0.5"></i>
+                    <div class="text-sm text-slate-600 dark:text-slate-300">
+                        <p><strong>A compra é feita via Kiwify</strong> com pagamento seguro. Assim que a Kiwify
+                            confirma
+                            o pagamento, seu acesso Pro é liberado automaticamente. Finalize o pedido usando o mesmo
+                            e-mail da conta Google conectada ao app.</p>
+                        <p class="mt-2">Já adquiriu? Clique em <span class="font-semibold">"Já sou assinante"</span> no
+                            banner ou abaixo para sincronizar.</p>
+                    </div>
+                </div>
+                <button id="refresh-access-button"
+                    class="w-full border text-primary-dark dark:text-primary-light font-medium py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    style="border-color: rgba(244,63,94,0.35);">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Já comprei, verificar acesso</span>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 text-center">O período de teste gratuito dura 3 dias a
+                partir da criação do espaço devocional. Após esse período, o Pro é necessário para registrar progresso e
+                novas entradas. Lembre-se de utilizar o mesmo e-mail da conta Google ao comprar.</p>
+        </div>
+    </div>
+    <div id="connect-partner-modal"
+        class="hidden fixed inset-0 z-50 bg-black/50 dark:bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-md space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-slate-800 dark:text-slate-200">Conectar/Convidar Parceiro(a)</h2>
+                <button id="close-connect-modal"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><i data-lucide="x"
+                        class="w-5 h-5"></i></button>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400">Compartilhe seu ID abaixo com seu parceiro(a) para que
+                ele(a) possa se conectar ao seu espaço devocional.</p>
+            <div
+                class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2">
+                <span class="text-sm font-mono text-slate-600 dark:text-slate-300 flex-grow"
+                    id="modal-couple-id">...</span>
+                <button id="modal-copy-id-button" title="Copiar ID do espaço"><i data-lucide="copy"
+                        class="w-4 h-4 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"></i></button>
+            </div>
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div><span
+                    class="flex-shrink mx-4 text-slate-400 text-sm">OU</span>
+                <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400">Se seu parceiro(a) já compartilhou um ID com você,
+                cole-o abaixo para conectar-se ao espaço dele(a).</p>
+            <form id="modal-join-space-form" class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+                <input id="modal-join-space-input" type="text" placeholder="Cole o ID do espaço aqui"
+                    class="flex-grow w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-light focus:border-primary-dark outline-none"
+                    required>
+                <button type="submit"
+                    class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2">
+                    <i data-lucide="link" class="w-5 h-5"></i>
+                    <span>Conectar</span>
+                </button>
+            </form>
+            <p class="text-xs text-amber-600 dark:text-amber-400 mt-2">Atenção: Conectar-se a outro espaço substituirá o
+                acesso ao seu espaço atual.</p>
+        </div>
+    </div>
+    <div id="pwa-instructions-modal"
+        class="hidden fixed inset-0 z-50 bg-black/60 dark:bg-black/70 flex items-start md:items-center justify-center modal-overlay overflow-y-auto">
+        <div
+            class="modal-content relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-2xl p-4 sm:p-6 md:p-8 pt-12 sm:pt-10 md:pt-12 space-y-6 border border-slate-200 dark:border-slate-800">
+            <button id="close-pwa-instructions"
+                class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><i
+                    data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="space-y-2">
+                <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Como instalar o app no seu
+                    dispositivo</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Siga os passos abaixo para adicionar o Jornada
+                    Devocional à sua tela inicial.</p>
+            </div>
+            <div class="space-y-5">
+                <section class="space-y-2">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
+                        <i data-lucide="smartphone" class="w-5 h-5 text-blue-500"></i><span>Android (Chrome)</span>
+                    </h3>
+                    <ol class="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside">
+                        <li>Toque no menu com três pontos no canto superior direito.</li>
+                        <li>Selecione <span class="font-semibold">Instalar app</span> ou <span
+                                class="font-semibold">Adicionar à tela inicial</span>.</li>
+                        <li>Confirme em <span class="font-semibold">Instalar</span> e o atalho aparecerá na sua tela
+                            inicial.</li>
+                    </ol>
+                </section>
+                <section class="space-y-2">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
+                        <i data-lucide="phone" class="w-5 h-5 text-pink-500"></i><span>iPhone / iPad (Safari)</span>
+                    </h3>
+                    <ol class="space-y-2 text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside">
+                        <li>Toque no ícone <span class="font-semibold">Compartilhar</span> (quadrado com seta para cima)
+                            na barra inferior.</li>
+                        <li>Role a lista e escolha <span class="font-semibold">Adicionar à Tela de Início</span>.</li>
+                        <li>Toque em <span class="font-semibold">Adicionar</span> e o app será instalado como atalho.
+                        </li>
+                    </ol>
+                </section>
+            </div>
+            <button id="pwa-instructions-ok"
+                class="w-full sm:w-auto bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2 rounded-lg transition-colors">Entendi</button>
+        </div>
+    </div>
+
+
+    <script type="module" src="assets/js/app.js"></script>
+
+</body>
+
+</html>
