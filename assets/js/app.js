@@ -170,9 +170,64 @@ function toggleTheme() {
   applyTheme(newTheme);
 }
 
-function setupPWA() {
+async function setupPWA() {
   const handshakeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#ffffff"/><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" fill="none" stroke="#f43f5e" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   const iconSvgDataUrl = `data:image/svg+xml,${encodeURIComponent(handshakeIconSVG)}`;
+
+  const createPngIcon = (size) => new Promise((resolve, reject) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.decoding = 'async';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Contexto 2D indisponível.'));
+            return;
+          }
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, size, size);
+          const inset = Math.round(size * 0.08);
+          ctx.drawImage(img, inset, inset, size - inset * 2, size - inset * 2);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (canvasError) {
+          reject(canvasError);
+        }
+      };
+      img.onerror = (event) => reject(event?.error || new Error('Falha ao carregar SVG para conversão.'));
+      img.src = iconSvgDataUrl;
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+  let manifestIcons;
+  try {
+    const [png192, png512] = await Promise.all([createPngIcon(192), createPngIcon(512)]);
+    manifestIcons = [
+      { src: png192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: png512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ];
+    const faviconLink = document.querySelector('link[rel="icon"]');
+    faviconLink?.setAttribute('href', png192);
+    faviconLink?.setAttribute('type', 'image/png');
+    $('#apple-touch-icon')?.setAttribute('href', png512);
+  } catch (iconError) {
+    console.warn('Falha ao gerar ícones PNG, usando SVG como fallback.', iconError);
+    manifestIcons = [
+      { src: iconSvgDataUrl, sizes: '192x192', type: 'image/svg+xml' },
+      { src: iconSvgDataUrl, sizes: '512x512', type: 'image/svg+xml' }
+    ];
+    const faviconLink = document.querySelector('link[rel="icon"]');
+    faviconLink?.setAttribute('href', iconSvgDataUrl);
+    faviconLink?.removeAttribute('type');
+    $('#apple-touch-icon')?.setAttribute('href', iconSvgDataUrl);
+  }
+
   const manifest = {
     name: 'Jornada Devocional',
     short_name: 'Jornada',
@@ -182,14 +237,10 @@ function setupPWA() {
     scope: './',
     background_color: '#fdf2f8',
     theme_color: '#f43f5e',
-    icons: [
-      { src: iconSvgDataUrl, sizes: '192x192', type: 'image/svg+xml' },
-      { src: iconSvgDataUrl, sizes: '512x512', type: 'image/svg+xml' }
-    ]
+    icons: manifestIcons
   };
   const manifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/json' }));
   $('#manifest-link')?.setAttribute('href', manifestUrl);
-  $('#apple-touch-icon')?.setAttribute('href', iconSvgDataUrl);
 
   if (!('serviceWorker' in navigator)) return;
   const isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -345,17 +396,22 @@ function renderCheckinCard() {
   const container = $('#checkin-card');
   if (!container) return;
   const checkins = devotionalSpace?.checkins || {};
+  const members = devotionalSpace?.members || [];
+  const isCoupled = members.length >= 2;
   const myCheckin = checkins[currentUser?.uid];
-  const partnerUid = (devotionalSpace?.members || []).find((uid) => uid !== currentUser?.uid);
+  const partnerUid = isCoupled ? members.find((uid) => uid !== currentUser?.uid) : null;
   const partnerCheckin = partnerUid ? checkins[partnerUid] : null;
   const alreadyCheckedInToday = isToday(myCheckin);
+  const buttonDisabled = alreadyCheckedInToday || !isCoupled;
+  const buttonLabel = !isCoupled ? 'Conecte-se ao parceiro'
+    : alreadyCheckedInToday ? 'Feito Hoje!' : 'Fiz meu devocional!';
   container.innerHTML = `<h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-3">Check-in Diário</h3>
     <div class="space-y-2 mb-4 text-sm">
       <p>Seu último check-in: <span class="font-medium ${isToday(myCheckin) ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}">${formatDateStatus(myCheckin)}</span></p>
-      ${partnerUid ? `<p>Último check-in do par: <span class="font-medium ${isToday(partnerCheckin) ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}">${formatDateStatus(partnerCheckin)}</span></p>` : ''}
+      ${partnerUid ? `<p>Último check-in do par: <span class="font-medium ${isToday(partnerCheckin) ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}">${formatDateStatus(partnerCheckin)}</span></p>` : '<p>Conecte-se ao parceiro para que os check-ins apareçam para os dois.</p>'}
     </div>
-    <button data-action="checkin" class="w-full text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors ${alreadyCheckedInToday ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark'}" ${alreadyCheckedInToday ? 'disabled' : ''}>
-      <i data-lucide="check-circle" class="w-5 h-5"></i><span>${alreadyCheckedInToday ? 'Feito Hoje!' : 'Fiz meu devocional!'}</span>
+    <button data-action="checkin" class="w-full text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors ${buttonDisabled ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark'}" ${buttonDisabled ? 'disabled' : ''}>
+      <i data-lucide="check-circle" class="w-5 h-5"></i><span>${buttonLabel}</span>
     </button>`;
   renderIcons();
 }
@@ -1162,6 +1218,11 @@ async function recoverDevotionalSpace() {
 
 function handleCheckin() {
   const now = new Date().toISOString();
+  const members = devotionalSpace?.members || [];
+  if (members.length < 2) {
+    showToast('Conecte-se ao parceiro antes de registrar o check-in.', 'error');
+    return;
+  }
   updateDoc(doc(db, 'devotionalSpaces', coupleId), { [`checkins.${currentUser.uid}`]: now })
     .then(() => showToast('Check-in registrado!'))
     .catch(() => showToast('Erro ao registrar.', 'error'));
@@ -1242,11 +1303,22 @@ async function handleModalJoinSpace(event) {
   showScreen(loadingScreen);
   try {
     const spaceRef = doc(db, 'devotionalSpaces', inputId);
-    const spaceSnap = await getDoc(spaceRef);
-    if (!spaceSnap.exists()) throw new Error('Espaço não encontrado');
-    if (unsubscribeSpace) unsubscribeSpace();
-    await updateDoc(doc(db, 'users', currentUser.uid), { coupleId: inputId });
+    const userRef = doc(db, 'users', currentUser.uid);
+    const previousCoupleId = coupleId;
+
     await updateDoc(spaceRef, { members: arrayUnion(currentUser.uid) });
+    await updateDoc(userRef, { coupleId: inputId });
+
+    if (previousCoupleId && previousCoupleId !== inputId) {
+      const previousSpaceRef = doc(db, 'devotionalSpaces', previousCoupleId);
+      try {
+        await updateDoc(previousSpaceRef, { members: arrayRemove(currentUser.uid) });
+      } catch (removeError) {
+        console.warn('Não foi possível remover usuário do espaço anterior:', removeError);
+      }
+    }
+
+    if (unsubscribeSpace) unsubscribeSpace();
     userProfile.coupleId = inputId;
     coupleId = inputId;
     await listenToDevotionalSpace(inputId);
@@ -1256,7 +1328,10 @@ async function handleModalJoinSpace(event) {
     showToast('Conectado ao espaço do parceiro!');
   } catch (error) {
     console.error('Erro conectar espaço:', error);
-    showToast('Erro ao conectar-se ao espaço.', 'error');
+    let message = 'Erro ao conectar-se ao espaço.';
+    if (error.code === 'permission-denied') message = 'Sem permissão para acessar este espaço. Peça ao parceiro para compartilhar o código correto.';
+    else if (error.code === 'not-found') message = 'Espaço não encontrado. Verifique o código informado.';
+    showToast(message, 'error');
     showScreen(mainApp);
   }
 }
@@ -1441,7 +1516,7 @@ function initApp() {
     $('#modal-join-space-form')?.addEventListener('submit', handleModalJoinSpace);
     connectPartnerModal?.addEventListener('click', (e) => { if (e.target === connectPartnerModal) closeConnectPartnerModal(); });
     fillSavedTheme();
-    setupPWA();
+    setupPWA().catch((error) => console.warn('Falha ao configurar PWA:', error));
     showStarterScreen();
   } catch (error) {
     console.error('Erro inicializando app:', error);
